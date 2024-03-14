@@ -39,19 +39,22 @@ As you might've imagined, this sort of analysis involves multiple steps, and mul
 
 Just a quick note on installation. Whenever possible, we recommend using conda for installing and maintaining your software stack. Installing Bioinformatics software from source can be a painful experience sometimes, and conda takes care of most cases with relative ease.
 
-- Trinity
-- Trinotate
-- Kallisto
-- Augustus
-- Salmon
+- Trinity [https://github.com/trinityrnaseq/trinityrnaseq/wiki]
+- Trinotate [https://github.com/Trinotate/Trinotate/wiki]
+- Kallisto [https://github.com/pachterlab/kallisto]
+- Augustus [https://bioinf.uni-greifswald.de/augustus/]
+- Salmon [https://github.com/COMBINE-lab/salmon]
+- rnaQuast [https://github.com/ablab/rnaquast]
+- BUSCO [https://busco.ezlab.org/]
 - SAMTools [https://www.htslib.org/]
 - IGV [https://www.igv.org/]
 
 ## File Formats
-We will be introducing a number of different file formats that are common in many types of omics analyses. Below is a list of these formats and links describing what they are, and although we will be covering all of these in the workshop and the accompanying slide deck, we thought it's a good idea for you to have a "Quick links" section to them.
+We will be introducing a number of different file formats that are common in many types of omics analyses. Below is a list of these formats and links describing what they are.
+It is assumed that you have some familiarity with these formats already.
 
 - FASTA [https://en.wikipedia.org/wiki/FASTA_format]
 - FASTQ [https://en.wikipedia.org/wiki/FASTQ_format]
 - SAM [https://en.wikipedia.org/wiki/SAM_(file_format)] 
 - BAM [https://en.wikipedia.org/wiki/Binary_Alignment_Map]
-- VCF/GVCF [https://en.wikipedia.org/wiki/Variant_Call_Format]
+
