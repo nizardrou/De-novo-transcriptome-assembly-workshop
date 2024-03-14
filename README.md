@@ -58,3 +58,18 @@ It is assumed that you have some familiarity with these formats already.
 - SAM [https://en.wikipedia.org/wiki/SAM_(file_format)] 
 - BAM [https://en.wikipedia.org/wiki/Binary_Alignment_Map]
 
+## The data
+The datasets that we will be using for this workshop are publicly available sequencing data in the form of FASTQ sequencing files. The are publicly available to download from the Short Read Archive (SRA [https://www.ncbi.nlm.nih.gov/sra]) using the following accessions SRR28281136,SRR28281137,SRR28281138,SRR28281139,SRR28281140, and SRR28281141. There are 6 samples in total, organized as paired end sequences (so 12 files), and spanning 3 conditions with 2 replicates per condition. The organism is Staphylococcus aureus, and the 3 conditions represent bacterial growth under different carbon sources, Glucose, Fructose, and Pyruvate.
+
+
+## Step 1: Assembling the reads using Trinity.
+Almost all sequencing data analysis begin with quality checking and quality trimming of the data. This process ensures that we remove low quality sequenced nucleotides as well as other artefacts such as sequencing adapter contamination. And whilst this is also the first step in our analysis, we will not be addressing it here. However, if you would like to find out how that is performed, then please have a look at our Quality checking and Quality Trimming section of the Variant detection and Annotation Workshop here [https://github.com/nizardrou/Variant-Detection-and-Annotation-workshop/edit/main/README.md#step-1-data-quality-checking-and-quality-trimming].
+
+We will be using Trinity for the purpose of assembling our transcriptome. Although there are other alternatives for transcriptome assembly, we have always produced good assemblies using this package. Another reason why we like Trinity is because it comes with a host of helper programs for post processing the assembly. It also performs well regardless of the organism size.
+However, the golden rule here is that "no one size fits all"!
+You should consider the fact that no tool is perfect and as such it is highly recommended for you to run multiple assemblies and assess the best performing tool.
+
+When you copied the data to your $SCRATCH directory, included with the FASTQ files is the shell script "de_novo.sh". You will also find a FASTA file called "trinity_assembly.Trinity.fasta".
+The "trinity_assembly.Trinity.fasta" is the pregenerated Trinity assembly. The reason that we have done that is due to time constraints. Assembly is a resources intensive (CPU and Memory) and time consuming process, and as such, it is not practicle for us to run the assembler and wait for 2+ hours for it to finish. That's not to say that we will not be showing you (below) how to run the assembly program.
+The script
+
