@@ -254,5 +254,8 @@ Stats based on ALL transcript contigs:
 	Total assembled bases: 3337029
 ```
 
+We like to look at the number of genes and transcripts and the total transcriptome size in addition to the N50 stats. If we already have an expectation as to the total number of genes for our organism (from a closly related species perhaps), as well as the transcriptome size, this will give us an idea on how complete our transcriptome assembly is. At around 3K genes, we are in the right ballpark of what we expect.
+
+
 
 
