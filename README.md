@@ -103,6 +103,7 @@ module load salmon/0.14.2
 module load numpy/1.26.4
 module load bowtie2/2.4.5
 module load samtools/1.10
+module load hisat2/2.2.1
 ```
 
 ### Running the Trinity assembly
@@ -148,3 +149,110 @@ chmod 755 de_novo.sh
 ```
 
 Since this can take at least 2 hours, and our time is limited, we will be skipping this stage, hence why the commands for Trinity are commented out (lines starting with "#").
+
+
+## Assessing the assembly Quality
+After your assembly is complete, and before moving along with annotation and quantification, you want to make sure that your assembly performed well!
+There are a few ways to assess assemblies, from stat based assessments, to the absence/presence of core genes, to alignment based metrics, and we will be covering these here.
+
+### Assess using read mapping
+In ideal situations, we want the reads that produced our assembly to map back to that assembly to the highest degree possible. A lower mapping percentages might indicate issues such as low sequencing yeild and not enough coverage, contamination, poor quality, or sequencing library quality issues. It might also indicate that our transcriptome is a lot more complex and that the assembler struggles to piece things together. It might also indicate that we have partially spliced genes so perhaps our extraction protocol needs to be investigated.
+
+Mapping the reads back involves using a plice-aware read aligner such as Bowtie2, STAR, HISAT2 or similar. We will be using HISAT2 and SAMTools for this task.
+
+The steps involved are below (included in the de_novo.sh script),
+
+1. Index the transcriptome using HISAT2,
+```
+hisat2-build -p 28 trinity_assembly.Trinity.fasta trinity_assembly
+```
+
+2. Align the reads,
+```
+hisat2 \
+-x trinity_assembly \
+-p 28 \
+-1 fru_1_1.fastq,fru_2_1.fastq,glu_1_1.fastq,glu_2_1.fastq,pyr_1_1.fastq,pyr_2_1.fastq \
+-2 fru_1_2.fastq,fru_2_2.fastq,glu_1_2.fastq,glu_2_2.fastq,pyr_1_2.fastq,pyr_2_2.fastq \
+-S aln.sam
+```
+
+3. Convert the SAM to a BAM, coordinate sort the BAM, index the sorted BAM, and gather the overall alignment stats,
+```
+samtools view -@ 28 -b -o aln.bam aln.sam
+samtools sort -@ 28 -o aln.sorted.bam aln.bam
+samtools index -@ 28 aln.sorted.bam
+samtools flagstat aln.sorted.bam > stats.txt
+```
+
+Once these steps are complete, have a look at the "stats.txt" file and look for the overall alignment rates. Ideally we should see over 80% alignment rates, ours are ~93%  so we are showing excellent signs that most of our reads made it into the assembly!
+```
+61353459 reads; of these:
+  61353459 (100.00%) were paired; of these:
+    10998445 (17.93%) aligned concordantly 0 times
+    36304307 (59.17%) aligned concordantly exactly 1 time
+    14050707 (22.90%) aligned concordantly >1 times
+    ----
+    10998445 pairs aligned concordantly 0 times; of these:
+      1097373 (9.98%) aligned discordantly 1 time
+    ----
+    9901072 pairs aligned 0 times concordantly or discordantly; of these:
+      19802144 mates make up the pairs; of these:
+        8727873 (44.08%) aligned 0 times
+        7094790 (35.83%) aligned exactly 1 time
+        3979481 (20.10%) aligned >1 times
+92.89% overall alignment rate
+```
+
+There are dedicated alignment QC software that we can use in addition to what was described above, and get more detailed breakdown of the stats (such as Qualimap), but for this initial assessment, the approach above will suffice.
+
+### Contig Nx and ExN50 Statistics
+As we mentioned earlier, we like using Trinity because of the host of helper programs that come packaged with the software. These include a dedicated script to calculate Contig N50 values as well as the NxN50 that takes into account the read alignments and expression of the transcripts.
+The N50 statistic is essentially the mean or median of lengths, and it is defined as the sequence length of the shortest contig at 50% of the total assembly length. Essentially, it tries to represent how contigeous our assembly is, with higher numbers" potentially" indicating a better assembly. We say potentially, because this statistic does nothing to express how well the assembly is put together, and so it should never be used as a sole metric, but rather an indicator.
+
+To run the N50 stat,
+```
+TrinityStats.pl trinity_assembly.Trinity.fasta
+```
+
+This will produce,
+```
+################################
+## Counts of transcripts, etc.
+################################
+Total trinity 'genes':	3040
+Total trinity transcripts:	3794
+Percent GC: 34.52
+
+########################################
+Stats based on ALL transcript contigs:
+########################################
+
+	Contig N10: 14232
+	Contig N20: 10849
+	Contig N30: 8233
+	Contig N40: 5784
+	Contig N50: 4271
+
+	Median contig length: 310
+	Average contig: 1122.70
+	Total assembled bases: 4259519
+
+
+#####################################################
+## Stats based on ONLY LONGEST ISOFORM per 'GENE':
+#####################################################
+
+	Contig N10: 14232
+	Contig N20: 10599
+	Contig N30: 7935
+	Contig N40: 5575
+	Contig N50: 4175
+
+	Median contig length: 302
+	Average contig: 1097.71
+	Total assembled bases: 3337029
+```
+
+
+
