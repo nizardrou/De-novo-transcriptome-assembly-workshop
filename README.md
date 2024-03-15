@@ -69,7 +69,82 @@ We will be using Trinity for the purpose of assembling our transcriptome. Althou
 However, the golden rule here is that "no one size fits all"!
 You should consider the fact that no tool is perfect and as such it is highly recommended for you to run multiple assemblies and assess the best performing tool.
 
+
 When you copied the data to your $SCRATCH directory, included with the FASTQ files is the shell script "de_novo.sh". You will also find a FASTA file called "trinity_assembly.Trinity.fasta".
 The "trinity_assembly.Trinity.fasta" is the pregenerated Trinity assembly. The reason that we have done that is due to time constraints. Assembly is a resources intensive (CPU and Memory) and time consuming process, and as such, it is not practicle for us to run the assembler and wait for 2+ hours for it to finish. That's not to say that we will not be showing you (below) how to run the assembly program.
-The script
 
+The shell script that is provided "de_novo.sh" contains all the necessary analysis steps, which we will be addressing in this workshop. Let's start by examining it.
+
+The first few lines are SLURM specific parameters. SLURM is a job scheduler and it will instruct the HPC where to submit our job. These instructions will be completely ignored if you are not submitting this script using "sbatch" so there is no need to delete them if you are running this on your own setup.
+
+Since de novo assembly is a resource intensive task, we are asking for 100GB of memory and 28 CPUs. The larger the dataset, and the larger the transcriptome of an organism, the more resources you will need to allocate. It is a balancing act but it is always better to ask for more resources than what you need. Typically, you should estimate at least 1GB of memory for every 1 million reads, and in case you have too many reads/datasets, it is recommended that you run digital normalization on the reads before assembling [https://github.com/trinityrnaseq/trinityrnaseq/wiki/Trinity-Insilico-Normalization].
+
+### SLURM arguments
+Here are the first few SLURM lines ,
+```
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --partition=gencore
+#SBATCH --cpus-per-task=28
+#SBATCH --time=04:00:00
+#SBATCH --mem 100000
+```
+
+### Loading the software stack
+The next few lines load the neccessary software packages so that they will be available for us when we call them. These are specific to our setup at the NYUAD HPC, so you will need to change these according to your own environment. Also note that sometimes the parameters and arguments change from one software version to the next, so always check to see if the same parameters are applicable in case you are running a different version.
+
+```
+module purge
+module load all
+module load gencore/2
+module load trinity/2.15.1
+module load salmon/0.14.2
+module load numpy/1.26.4
+module load bowtie2/2.4.5
+module load samtools/1.10
+```
+
+### Running the Trinity assembly
+The lines below will run the Trinity assembly. We are specifying that the input reads are in FASTQ format (they can also be FASTA), we are limiting the memory usage to 100GB and ask for 28 CPUs, that the output should be prefixed with "trinity_assembly", and that the samples their FASTQ files and their grouping is described in the tab-delimited file called "cond.txt".
+
+```
+Trinity \
+--seqType fq \
+--samples_file cond.txt \
+--CPU 28 \
+--output trinity_assembly \
+--max_memory 100G
+```
+
+The "cond.txt" file is tab-delimited and should follow the order of,
+```
+CONDITION  CONDITION_REPLICATE_NUMBER  READ1_FASTQ_FILE_NAME  READ2_FASTQ_FILE_NAME
+```
+
+And that looks like this,
+```
+fructose    fructose_rep1   fru_1_1.fastq   fru_1_2.fastq
+fructose    fructose_rep2   fru_2_1.fastq   fru_2_2.fastq
+glucose glucose_rep1    glu_1_1.fastq   glu_1_2.fastq
+glucose glucose_rep2    glu_2_1.fastq   glu_2_2.fastq
+pyruvate    pyruvate_rep1   pyr_1_1.fastq   pyr_1_2.fastq
+pyruvate    pyruvate_rep2   pyr_2_1.fastq   pyr_2_2.fastq
+
+```
+
+Although there are other ways to specify these inputs, we find this to be the best since it will allow us to reuse it later on when we quantify the expression levels for each sample after the assembly is complete.
+
+### Submitting the assembly
+All you have to do here is submit the script to SLURM using the command below,
+```
+sbatch de_novo.sh
+```
+
+And if you are running this on the command line rather than SLURM,
+```
+chmod 755 de_novo.sh
+./de_novo.sh
+```
+
+Since this can take at least 2 hours, and our time is limited, we will be skipping this stage, hence why the commands for Trinity are commented out (lines starting with "#").
