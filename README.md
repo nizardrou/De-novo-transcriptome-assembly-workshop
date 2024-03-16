@@ -344,3 +344,16 @@ The command above can be explained as follows,
 
 The output will be generated in a folder called "QUAST".
 
+## Annotating the assembly using Trinotate
+So now that we have checked the quality of our assembly and we are happy to proceed, the next logical step is to annotate the assembly. Broadly speaking, there are 2 ways that you can go about it.
+1. Ab initio gene finding, which is what BUSCO and QUAST used in the previous steps to predict genes based on the sequence of our assembly (such as AUGUSTS, GeneMark, Glimmer etc).
+2. Alignment and homology based searching, which is what Trinotate uses to annotate the genes.
+
+It is important to note however that, Trinotate will take as input what you tell it are the genes! That is to say it will not try to predict where genes are, it will assume that you have done the work and you are providing it with a list of genes in FASTA format.
+
+In our case, the assembly represents that gene list in FASTA format already, so we can go ahead and provide it to Trinotate.
+
+So what does Trinotate do?
+
+
+
