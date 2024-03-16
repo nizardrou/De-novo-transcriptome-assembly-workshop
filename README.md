@@ -355,5 +355,33 @@ In our case, the assembly represents that gene list in FASTA format already, so 
 
 So what does Trinotate do?
 
+At its core, Trinotate provides the means for functional annotation of transcriptomes, particularly de novo transcriptomes. It does so by comparing against known homology databases such as PFAM and UniProt, GeneOntolgy, and EggNogg. Similar to Trinity, it also provides many helper scripts that allow for easy integration with Trinity and downstream expression quantification. 
+
+Please note that as of March 2024, Trinotate is no longer under active development.
+
+
+
+Let's start by loading the packages,
+```
+module purge
+module load gencore
+module load Miniconda3/4.7.10
+source  activate /scratch/gencore/conda3/envs/Trinotate/
+export PATH="/scratch/gencore/software/Trinotate-Trinotate-v4.0.2:$PATH"
+export TRINOTATE_DATA_DIR=/scratch/gencore/trinotate_addons/databases/4.0.2
+```
+
+Let's make a copy of our FASTA assembly just to be on the safe side (in case we overwrite something, trust we've done it before!),
+```
+cp trinity_assembly.Trinity.fasta transcripts.fasta
+```
+
+Next, we need to run Transdecoder and identify the longest ORFs for our candidate genes (from the FASTA assembly),
+```
+TransDecoder.LongOrfs -t transcripts.fasta
+```
+
+
+
 
 
