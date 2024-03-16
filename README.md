@@ -381,6 +381,41 @@ Next, we need to run Transdecoder and identify the longest ORFs for our candidat
 TransDecoder.LongOrfs -t transcripts.fasta
 ```
 
+Transdecoder will identify the longest Open Reading Frame from our transcripts, but this is inferred based on the sequence content. It will be better if we can add some supporting evidence for these ORFs. We can do this through Transdecoder but we must first carry out some homology searches on our longest ORFs.
+
+To do this, we will search the uniprot and swissprot databases using BlastP, as well as against the PFAM domain database using HMMScan.
+```
+blastp \
+-query transcripts.fasta.transdecoder_dir/longest_orfs.pep \
+-db /scratch/gencore/trinotate_addons/databases/4.0.2/uniprot_sprot.pep \
+-max_target_seqs 1 \
+-outfmt 6 \
+-evalue 1e-5 \
+-num_threads 28 > blastp.outfmt6
+
+hmmscan \
+--cpu 28 \
+--domtblout pfam.domtblout \
+/scratch/gencore/trinotate_addons/databases/4.0.2/Pfam-A.hmm \
+transcripts.fasta.transdecoder_dir/longest_orfs.pep
+```
+
+And then we will need to predict the ORFs again but only retaining the ones with hits,
+```
+TransDecoder.Predict \
+-t transcripts.fasta \
+--retain_pfam_hits pfam.domtblout \
+--retain_blastp_hits blastp.outfmt6
+```
+The output from the steps above will be the following,
+```
+transcripts.fasta.transdecoder.bed
+transcripts.fasta.transdecoder.cds
+transcripts.fasta.transdecoder.gff3
+transcripts.fasta.transdecoder.pep
+```
+
+Now that we are done with refining our ORF prediction, and we utilized an evidence based approach, we can carry on with the rest of the Trinotate steps.
 
 
 
