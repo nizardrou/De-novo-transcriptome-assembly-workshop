@@ -299,3 +299,4 @@ The BUSCO output will be in the BUSCO folder.
 
 ### Assessing the assembly using rnaQUAST
 The final package that we will be using to assess the quality of our assembly is rnaQUAST, which is an extension of QUAST. QUAST stands for "Quality Assessment Tool for Genome Assemblies", and it is another common package that address the quality assessment of de novo genome and transcriptome assemblies.
+IN addition to statistics that we have generated earlier for N50, QUAST tries to capture potential misassemblies 
