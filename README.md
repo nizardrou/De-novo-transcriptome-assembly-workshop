@@ -212,11 +212,13 @@ The N50 statistic is essentially the mean or median of lengths, and it is define
 
 To run the N50 stat,
 ```
-TrinityStats.pl trinity_assembly.Trinity.fasta
+TrinityStats.pl trinity_assembly.Trinity.fasta > assembly_stats.txt
 ```
 
-This will produce,
+We redirected the output of the command above ">" to a text file called "assembly_stats.txt". Let's examine it,
 ```
+more assembly_stats.txt
+
 ################################
 ## Counts of transcripts, etc.
 ################################
@@ -254,8 +256,46 @@ Stats based on ALL transcript contigs:
 	Total assembled bases: 3337029
 ```
 
-We like to look at the number of genes and transcripts and the total transcriptome size in addition to the N50 stats. If we already have an expectation as to the total number of genes for our organism (from a closly related species perhaps), as well as the transcriptome size, this will give us an idea on how complete our transcriptome assembly is. At around 3K genes, we are in the right ballpark of what we expect.
+We like to look at the number of genes and transcripts and the total transcriptome size in addition to the N50 stats. If we already have an expectation as to the total number of genes for our organism (from a closly related species perhaps), as well as the transcriptome size, this will give us an idea on how complete our transcriptome assembly is. At around 3K genes, we are in the right ballpark of what we expect. The total assembled bases is around 4.2Mb, which is more than what we would expect for this organism. Again, this might be because we have some background genomic (DNA) "contamination" in our sample, or because the sequencing has also captured plasmids.
+
+Another more suitable statistic to calculate is the Ex90N50 and the Ex90 Gene Count. As explained in the Trinity pages, [https://github.com/trinityrnaseq/trinityrnaseq/wiki/Transcriptome-Contig-Nx-and-ExN50-stats#contig-ex90n50-statistic-and-ex90-gene-count],
+
+_An alternative to the Contig Nx statistic that could be considered more appropriate for transcriptome assembly data is the ExN50 statistic. Here, the N50 statistic is computed as above but limited to the top most highly expressed genes that represent x% of the total normalized expression data. The gene expression is take as the sum of the transcript isoform expression and the gene length is computed as the expression-weighted mean of isoform lengths._
+
+We will be generating this statistic later on as it requires us to align the samples back to our assembly and calculate expression values.
 
 
+### Assessing the assembly using BUSCO
+
+BUSCO stands for "Benchmarking Universal Single-Copy Orthologs", and it is used as a means to assess genome and transcriptome assemblies by looking for the presense of single-copy core genes within our assemblies. It can run on both eukaryotic and prokaryotic assemblies, and the higher the BUSCO scores, the better the assembly.
+In contrast to what we have done previously, BUSCO is the first tool in our assessment list that looks at the content of our assembly as a means of assessing its quality.
+It wraps around many packages in order to perform this task, and it can also run gene prediction software as part of the analysis. To know more about BUSCO follow the link at the "Sfotware Stack" section above.
+
+To run BUSCO, we first need to load the appropriate package,
+```
+module purge
+module load all
+module load gencore/2
+export PATH="/scratch/gencore/.eb/2.0/software/augustus/3.4.0/bin:$PATH"
+export PATH="/scratch/gencore/.eb/2.0/software/augustus/3.4.0/bin:$PATH"
+export AUGUSTUS_CONFIG_PATH="/scratch/gencore/.eb/2.0/software/augustus/3.4.0/config/"
+module load busco/5.2.0
+```
+
+To run the BUSCO command,
+```
+busco \
+-i trinity_assembly.Trinity.fasta \
+--out BUSCO \
+-m tran \
+--auto-lineage-prok \
+-c 28
+```
 
 
+In the command above the input is the Trinity assembly "-i trinity_assembly.Trinity.fasta", we specified the output folder to be "BUSCO" using the "--out BUSCO" flag, we also instructed BUSCO that we are running in Transcriptome mode and our organism is a prokaryote using the "-m tran" and "--auto-lineage-prok" flags respectively, and finally that we want BUSCO to ustilize 28 CPUs "-c 28".
+
+The BUSCO output will be in the BUSCO folder.
+
+### Assessing the assembly using rnaQUAST
+The final package that we will be using to assess the quality of our assembly is rnaQUAST, which is an extension of QUAST. QUAST stands for "Quality Assessment Tool for Genome Assemblies", and it is another common package that address the quality assessment of de novo genome and transcriptome assemblies.
