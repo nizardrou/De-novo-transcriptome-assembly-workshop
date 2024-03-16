@@ -297,6 +297,50 @@ In the command above the input is the Trinity assembly "-i trinity_assembly.Trin
 
 The BUSCO output will be in the BUSCO folder.
 
-### Assessing the assembly using rnaQUAST
-The final package that we will be using to assess the quality of our assembly is rnaQUAST, which is an extension of QUAST. QUAST stands for "Quality Assessment Tool for Genome Assemblies", and it is another common package that address the quality assessment of de novo genome and transcriptome assemblies.
-IN addition to statistics that we have generated earlier for N50, QUAST tries to capture potential misassemblies 
+### Assessing the assembly using QUAST
+The final package that we will be using to assess the quality of our assembly is QUAST. QUAST stands for "Quality Assessment Tool for Genome Assemblies", and it is another common package that address the quality assessment of de novo genome and transcriptome assemblies.
+In addition to statistics that we have generated earlier for N50, QUAST tries to capture potential misassemblies. Misassemblies are instances whereby contigs have been "stiched" together even though they shouldn't be as a result of the assembly program not being able to resolve them. These can occur around repetitive sequences and low complexity regions, or because we did not have sufficient coverage, read length etc. Misassemblies can be detected by mapping the reads back to the assembly and essentially looking for areas of 0 or very low coverage. If you think about it, the assembly should be a product of your reads, and if you have assembled a region that has no coverage by your reads, then it shouldn't exist!
+
+QUAST can also wrap around ab initio gene finding and BUSCO, so it makes sense to execute QUAST at the same time.
+
+We want to ask QUAST to map the reads back to the assembly, but we have 6 read1s and 6 read2s spanning all of our samples, and unlike HISAT2, we cannot supply them as a comma-separated list. The work around is to concatenate all of the read1s together and all of the read2s together.
+```
+cat *_1.fastq > read1.fastq
+cat *_2.fastq > read2.fastq
+```
+
+Now, let's first load the neccessary packages,
+```
+module purge
+module load gencore
+module load Miniconda3/4.7.10
+source activate /scratch/gencore/conda3/envs/quast_env
+export PATH="/scratch/gencore/software/genemarks_t:$PATH"
+```
+
+The QUAST command should look something like this,
+```
+quast.py \
+-t 28 \
+-f \
+-b \
+-o QUAST \
+--rna-finding \
+--bam aln.sorted.bam \
+-1 read1.fastq \
+-2 read2.fastq \
+trinity_assembly.Trinity.fasta
+```
+
+The command above can be explained as follows,
+- -t 28 = number of CPUs to use.
+- -f = enable gene finiding (gene predicition). This uses GeneMark for prokaryotes by default which is what we need.
+- -b = run BUSCO.
+- -o QUAST = The output folder name.
+- --rna-finding = detect ribosomal RNA genes.
+- --bam aln.sorted.bam = the BAM alignment file that we generated previously. This is used for structural variation detection and coverage histogram building.
+- -1 read1.fastq -2 read2.fastq = the read1s that we concatenated earlier, which will be aligned to the assembly in order to detect misassemblies and coverage.
+- trinity_assembly.Trinity.fasta = the assembly.
+
+The output will be generated in a folder called "QUAST".
+
