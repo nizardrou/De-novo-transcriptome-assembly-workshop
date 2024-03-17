@@ -521,8 +521,29 @@ module load numpy/1.26.4
 module load bowtie2/2.4.5
 module load samtools/1.10
 module load hisat2/2.2.1
+module load rsem/1.3.3
+
 ```
 
-Before proceeding with DE (Differential expression) analysis, we first need to compute a counts matrix. This will tell us how much of each assembled transcript, each one of our samples is "expressing". There are 2 main approaches to this, either alignment based (such as HISAT2, BOWTIE2 etc.), or alignment-free methods that rely on k-mer estimations (such as Kallisto and Salmon). The pros/cons of each method are beyond the scope of this tutorial but here is a link to a paper that tries to benchmark them against each other [].
+Before proceeding with DE (Differential expression) analysis, we first need to compute a counts matrix. This will tell us how much of each assembled transcript, each one of our samples is "expressing". There are 2 main approaches to this, either alignment based (such as RSEM, HISAT2, BOWTIE2 etc.), or alignment-free methods that rely on k-mer estimations (such as Kallisto and Salmon). The pros/cons of each method are beyond the scope of this tutorial but here is a link to a paper that tries to benchmark them against each other [https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-018-4869-5#:~:text=These%20alignment%2Dfree%20pipelines%20are,indexed%20transcript%20databases%20%5B4%5D.].
+
+Trinity is packaged with a script "align_and_estimate_abundance.pl " that allows us to automoate this process.
+```
+align_and_estimate_abundance.pl \
+--transcripts trinity_assembly.Trinity.fasta \
+--seqType fq \
+--samples_file cond.txt \
+--est_method RSEM \
+--output_dir RSEM \
+--thread_count 28 \
+--gene_trans_map trinity_assembly.Trinity.fasta.gene_trans_map \
+--prep_reference \
+--aln_method bowtie2
+```
+
+In the command above, we are instructing the script to estimate transcript abundance using RSEM [https://github.com/deweylab/RSEM], and utilize BOWTIE2 for this purpose. We prefer running the alignment before-hand and providing the BAM file(s) to RSEM, but we wanted to show you the process within Trinity.
+Adding the "--prep_reference" will also index the assembly using BOWTIE2 as a first step, in case you already indexed the assembly, you can skip this flag.
+The output will be in a folder called "RSEM".
+
 
 
