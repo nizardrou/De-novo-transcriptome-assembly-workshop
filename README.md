@@ -534,7 +534,6 @@ align_and_estimate_abundance.pl \
 --seqType fq \
 --samples_file cond.txt \
 --est_method RSEM \
---output_dir RSEM \
 --thread_count 28 \
 --gene_trans_map trinity_assembly.Trinity.fasta.gene_trans_map \
 --prep_reference \
@@ -543,7 +542,72 @@ align_and_estimate_abundance.pl \
 
 In the command above, we are instructing the script to estimate transcript abundance using RSEM [https://github.com/deweylab/RSEM], and utilize BOWTIE2 for this purpose. We prefer running the alignment before-hand and providing the BAM file(s) to RSEM, but we wanted to show you the process within Trinity.
 Adding the "--prep_reference" will also index the assembly using BOWTIE2 as a first step, in case you already indexed the assembly, you can skip this flag.
-The output will be in a folder called "RSEM".
+The output will be generated on a per-sample basis, that is, a folder for each replicate will be created with RSEM outputs in each folder.
 
+Let's look at the output of one of these samples for example,
+```
+ls -1 fructose_rep1/
+bowtie2.bam
+bowtie2.bam.for_rsem.bam
+bowtie2.bam.ok
+RSEM.genes.results
+RSEM.isoforms.results
+RSEM.isoforms.results.ok
+RSEM.stat
+```
 
+We have the BAM alignment files, but in addition we have the 2 files that we are most interested in, the "RSEM.genes.results", and the "RSEM.isoforms.results", representing transcript quantification at the gene level and at the transcript level respectively.
+
+Now that we have the individual results for each replicate, we will need to create an expression matrix for the whole experiment (all replicates). We can do that using the "abundance_estimates_to_matrix.pl " script from Trinity.
+
+```
+abundance_estimates_to_matrix.pl \
+--est_method RSEM \
+--gene_trans_map trinity_assembly.Trinity.fasta.gene_trans_map \
+--name_sample_by_basedir \
+--out_prefix RSEM.out \
+fructose_rep1/RSEM.isoforms.results \
+fructose_rep2/RSEM.isoforms.results \
+glucose_rep1/RSEM.isoforms.results \
+glucose_rep2/RSEM.isoforms.results \
+pyruvate_rep1/RSEM.isoforms.results \
+pyruvate_rep2/RSEM.isoforms.results
+```
+
+This step will compute the expression matrix for both genes and isoforms, so you don't need to run separately for RSEM.isoforms.results and RSEM.genes.results files (in fact if you supply the genes then it won't work and give you an error).
+
+The files that are created are,
+```
+ls -1 RSEM.out.*
+RSEM.out.gene.counts.matrix
+RSEM.out.gene.TMM.EXPR.matrix
+RSEM.out.gene.TPM.not_cross_norm
+RSEM.out.gene.TPM.not_cross_norm.runTMM.R
+RSEM.out.gene.TPM.not_cross_norm.TMM_info.txt
+RSEM.out.isoform.counts.matrix
+RSEM.out.isoform.TMM.EXPR.matrix
+RSEM.out.isoform.TPM.not_cross_norm
+RSEM.out.isoform.TPM.not_cross_norm.runTMM.R
+RSEM.out.isoform.TPM.not_cross_norm.TMM_info.txt
+```
+
+Now that we have our expression matrices generated, the next logical step is to run DGE (Differential gene expression analysis). At this point, you can branch off and do your own preferred method, by for the purpose of this workshop, we are going to stay within the Trinity package.
+
+Trinity provides different options for running DGE as highlighted earlier. We are going to proceed with DESeq2.
+
+To do this, first we need to run the script "run_DE_analysis.pl",
+```
+module load bioconductor-deseq2/1.32.0
+
+run_DE_analysis.pl \
+--matrix RSEM.out.gene.counts.matrix \
+--method DESeq2 \
+ --samples_file dge.txt \
+ --output deseq2 \
+ --contrasts comp.txt
+```
+
+An alternative would be to use our own instance of NASQAR2 [http://nasqar2.abudhabi.nyu.edu/], and select the DESeq2 app [http://nasqar2.abudhabi.nyu.edu/deseq2shiny/].
+
+The output folder is called "deseq2", so let's examine the content!
 
