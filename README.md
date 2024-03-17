@@ -501,3 +501,28 @@ And with that we are done with Trinotate, so let's take a few moments and examin
 ## Expression Quantification
 So far, we have assembled our transcriptome, assessed the quality of our assembly, and annotated our assembly. The last step of this analysis involves us quantifying the expression values and comparing our conditions and replicates. This is similar to what we do with a "traditional" RNAseq analysis, and from this point on, you can certainly move ahead with your own prefered RNAseq methodolgy, however, since Trinity/Trinotate provide helper scripts to automate this and work intuitively with the outputs that we have generated so far, we will stick with that.
 
+Trinity provides support for several differential expression analysis tools, currently including the following R packages:
+
+- edgeR : [http://bioconductor.org/packages/release/bioc/html/edgeR.html]
+- DESeq2: [http://bioconductor.org/packages/release/bioc/html/DESeq2.html]
+- limma/voom: [http://bioconductor.org/packages/release/bioc/html/limma.html]
+- ROTS: [http://www.btk.fi/research/research-groups/elo/software/rots/]
+
+**PLEASE NOTE** that in our example data, we only have duplicates, not triplicates for each condition, and so we will not be able to perform statistical analysis on differentially expressed genes.
+
+First, let's go ahead and switch back to loading Trinity,
+```
+module purge
+module load all
+module load gencore/2
+module load trinity/2.15.1
+module load salmon/0.14.2
+module load numpy/1.26.4
+module load bowtie2/2.4.5
+module load samtools/1.10
+module load hisat2/2.2.1
+```
+
+Before proceeding with DE (Differential expression) analysis, we first need to compute a counts matrix. This will tell us how much of each assembled transcript, each one of our samples is "expressing". There are 2 main approaches to this, either alignment based (such as HISAT2, BOWTIE2 etc.), or alignment-free methods that rely on k-mer estimations (such as Kallisto and Salmon). The pros/cons of each method are beyond the scope of this tutorial but here is a link to a paper that tries to benchmark them against each other [].
+
+
