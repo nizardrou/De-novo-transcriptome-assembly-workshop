@@ -611,3 +611,11 @@ An alternative would be to use our own instance of NASQAR2 [http://nasqar2.abudh
 
 The output folder is called "deseq2", so let's examine the content!
 
+To find out what else you can perform as a downstream analysis within the Trinity package, have a look here [https://github.com/trinityrnaseq/trinityrnaseq/wiki/Trinity-Differential-Expression#extracting-and-clustering-differentially-expressed-transcripts].
+
+This concludes our workshop, but now that we have generated all the results, we can also run TrinotateWeb to visualize everything in in one instance [https://github.com/Trinotate/Trinotate/wiki/TrinotateWeb].
+
+We can also visualize the alignments on IGV.
+
+We hope that you found this guided tutorial useful and for any comments/questions please reach out to us by raising an issue in this repo!
+
