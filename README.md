@@ -498,3 +498,6 @@ The work-around above is a perfect example of why setting and maintaining your s
 
 And with that we are done with Trinotate, so let's take a few moments and examine the contents of the report (you can open it in EXCEL).
 
+## Expression Quantification
+So far, we have assembled our transcriptome, assessed the quality of our assembly, and annotated our assembly. The last step of this analysis involves us quantifying the expression values and comparing our conditions and replicates. This is similar to what we do with a "traditional" RNAseq analysis, and from this point on, you can certainly move ahead with your own prefered RNAseq methodolgy, however, since Trinity/Trinotate provide helper scripts to automate this and work intuitively with the outputs that we have generated so far, we will stick with that.
+
