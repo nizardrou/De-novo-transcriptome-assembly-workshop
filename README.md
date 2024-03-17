@@ -417,6 +417,84 @@ transcripts.fasta.transdecoder.pep
 
 Now that we are done with refining our ORF prediction, and we utilized an evidence based approach, we can carry on with the rest of the Trinotate steps.
 
+In your data folder, you will find an SQLite database (myTrinotate.sqlite) that was created using Trinotate. This was initialized during the setup of Trinotate and it only needs to happen once, so you don't have to do this unless you are setting up Trinotate on your own setup.
 
+The command below is what created this Database,
+```
+Trinotate --create \
+--db myTrinotate.sqlite \
+--trinotate_data_dir /scratch/gencore/trinotate_addons/databases/4.0.2 \
+--use_diamond
+```
 
+When the command above is initiated, it will download all of the databases that Trinotate relies on (such as PFAM, uniprot/swissprot, eggnogg etc.), it will build the databases, and initialize the database. Once this "myTrinotate.sqlite" database is created, you can copy it somewhere and reuse for future projects anytime you like. If at any point you need to update the databases, then all you have to do is run the above command and start using the newly create database.
+
+Import the transcripts and their homolgy predicted protein translations into the database,
+```
+Trinotate \
+--db myTrinotate.sqlite \
+--init \
+--gene_trans_map trinity_assembly.Trinity.fasta.gene_trans_map \
+--transcript_fasta transcripts.fasta \
+--transdecoder_pep transcripts.fasta.transdecoder.pep
+```
+
+Run the Trinotate command (more information below),
+```
+Trinotate --db myTrinotate.sqlite --CPU 28 \
+--transcript_fasta transcripts.fasta \
+--transdecoder_pep transcripts.fasta.transdecoder.pep \
+--trinotate_data_dir /scratch/gencore/trinotate_addons/databases/4.0.2/ \
+--run "swissprot_blastp swissprot_blastx pfam tmhmmv2 EggnogMapper" \
+--use_diamond
+```
+
+The command above will do the following,
+- --CPU 28 = Use 28 CPUs.
+- --transcript_fasta transcripts.fasta = Provide the transcripts (assembly) as input.
+- --transdecoder_pep transcripts.fasta.transdecoder.pep = Provide the Transdecoder ORFs as input as well.
+- --trinotate_data_dir /scratch/gencore/trinotate_addons/databases/4.0.2/ = The path to the Trinotate database directory (the same one used when we initialized it above).
+- --run "swissprot_blastp swissprot_blastx pfam tmhmmv2 EggnogMapper" = Instruct Trinotate, which analysis steps we want to perform.
+- --use_diamond = Use "diamond blast" instead of "NCBI blast", which significantly speeds up the searches.
+
+The command above will automatically load the results of the analysis into the SQLite database, so we don't have to do that ourselves (previous versions of Trinotate required that you do that after independently running the commands).
+
+You might notice that we are missing "SignalP6" from our list above. SignalP6 predictis signal peptides and the location of their cleavage sites in proteins, and we can certainly ask Trinotate to run it at the same time as the other tools. However, by default, Trinotate will run SignalP6 in "eukaryotic" mode, which is not what we want, since we are dealing with a Gram positive bacteria.
+
+But we can run SignalP6 independently ourselves and adjust the parameters to suite our needs like so,
+```
+/scratch/gencore/trinotate_addons/signalp-4.1/signalp \
+-f short \
+-t gram+ \
+-n signalp.out \
+transcripts.fasta.transdecoder.pep
+```
+
+Then all we have to do is load the results into the "myTrinotate.sqlite" database,
+```
+Trinotate --db myTrinotate.sqlite --LOAD_signalp signalp.out
+```
+
+At the end of this annotation process, it is useful to produce a tab-delimited file that includes all of the results of our analysis. This is achieved through the "Trinotate report" command.
+
+**HOWEVER**, we have found out (and this might only be relevant to our own setup and installation), that the report generation in the latest version of Trinotate (the one that we have been using so far) does not work, and it just produces and empty report!
+
+The work-around that we have found, is to generate the report using a previous version of Trinotate, but to do that, we have to unload our current environment and load the previous version.
+
+```
+conda deactivate
+module purge
+module load gencore/1
+module load gencore_rnaseq/1.0
+module load gencore_annotation
+module load gencore_dev
+module load gencore_trinity/1.0
+
+Trinotate myTrinotate.sqlite report > trinotate_annotation_report.xls
+import_transcript_names.pl myTrinotate.sqlite trinotate_annotation_report.xls
+```
+
+The work-around above is a perfect example of why setting and maintaining your software stack through conda is so useful! If you just had a source installation of Trinotate, it meant that you would now have to uninstall the current version and install the previous one.
+
+And with that we are done with Trinotate, so let's take a few moments and examine the contents of the report (you can open it in EXCEL).
 
