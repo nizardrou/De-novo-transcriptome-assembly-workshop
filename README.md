@@ -61,6 +61,15 @@ It is assumed that you have some familiarity with these formats already.
 ## The data
 The datasets that we will be using for this workshop are publicly available sequencing data in the form of FASTQ sequencing files. The are publicly available to download from the Short Read Archive (SRA [https://www.ncbi.nlm.nih.gov/sra]) using the following accessions SRR28281136,SRR28281137,SRR28281138,SRR28281139,SRR28281140, and SRR28281141. There are 6 samples in total, organized as paired end sequences (so 12 files), and spanning 3 conditions with 2 replicates per condition. The organism is Staphylococcus aureus, and the 3 conditions represent bacterial growth under different carbon sources, Glucose, Fructose, and Pyruvate.
 
+## The scripts and the files
+In the data folder that you have copied, there are a number of shell scripts with the extension ".sh", and below is a summary of what they are,
+
+- annotate.sh = The script that runs the Transdecoder and Trinotate for the annotation of the assembly.
+- assembly.sh = The script that assembles the transcriptome using Trinity.
+- qc.sh = The script that performs the assessment of the assembly using Alignment, BUSCO, and QUAST.
+- quantify.sh = The script that quantifies expression levels and performs DGE using RSEM and DESeq2.
+- de_novo.sh = A script that combines all of the steps together.
+
 
 ## Step 1: Assembling the reads using Trinity.
 Almost all sequencing data analysis begin with quality checking and quality trimming of the data. This process ensures that we remove low quality sequenced nucleotides as well as other artefacts such as sequencing adapter contamination. And whilst this is also the first step in our analysis, we will not be addressing it here. However, if you would like to find out how that is performed, then please have a look at our Quality checking and Quality Trimming section of the Variant detection and Annotation Workshop here [https://github.com/nizardrou/Variant-Detection-and-Annotation-workshop/edit/main/README.md#step-1-data-quality-checking-and-quality-trimming].
@@ -71,9 +80,9 @@ You should consider the fact that no tool is perfect and as such it is highly re
 
 
 When you copied the data to your $SCRATCH directory, included with the FASTQ files is the shell script "de_novo.sh". You will also find a FASTA file called "trinity_assembly.Trinity.fasta".
-The "trinity_assembly.Trinity.fasta" is the pregenerated Trinity assembly. The reason that we have done that is due to time constraints. Assembly is a resources intensive (CPU and Memory) and time consuming process, and as such, it is not practicle for us to run the assembler and wait for 2+ hours for it to finish. That's not to say that we will not be showing you (below) how to run the assembly program.
+The "trinity_assembly.Trinity.fasta" is the pre-generated Trinity assembly. The reason that we have done that is due to time constraints. Assembly is a resources intensive (CPU and Memory) and time consuming process, and as such, it is not practicle for us to run the assembler and wait for 2+ hours for it to finish. That's not to say that we will not be showing you (below) how to run the assembly program.
 
-The shell script that is provided "de_novo.sh" contains all the necessary analysis steps, which we will be addressing in this workshop. Let's start by examining it.
+The shell script that is provided "de_novo.sh" contains all the necessary analysis steps, which we will be addressing in this workshop.
 
 The first few lines are SLURM specific parameters. SLURM is a job scheduler and it will instruct the HPC where to submit our job. These instructions will be completely ignored if you are not submitting this script using "sbatch" so there is no need to delete them if you are running this on your own setup.
 
@@ -85,7 +94,6 @@ Here are the first few SLURM lines ,
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --partition=gencore
 #SBATCH --cpus-per-task=28
 #SBATCH --time=04:00:00
 #SBATCH --mem 100000
@@ -139,21 +147,26 @@ Although there are other ways to specify these inputs, we find this to be the be
 ### Submitting the assembly
 All you have to do here is submit the script to SLURM using the command below,
 ```
-sbatch de_novo.sh
+sbatch assembly.sh
 ```
 
 And if you are running this on the command line rather than SLURM,
 ```
-chmod 755 de_novo.sh
-./de_novo.sh
+chmod 755 assembly.sh
+./assembly.sh
 ```
 
 Since this can take at least 2 hours, and our time is limited, we will be skipping this stage, hence why the commands for Trinity are commented out (lines starting with "#").
 
 
+**PLEASE NOTE THAT IF YOU WANT TO SUBMIT THE COMPLETE ANALYSIS, THEN YOU SHOULD RUN THE "de_novo.sh" script**
+
+
 ## Assessing the assembly Quality
 After your assembly is complete, and before moving along with annotation and quantification, you want to make sure that your assembly performed well!
 There are a few ways to assess assemblies, from stat based assessments, to the absence/presence of core genes, to alignment based metrics, and we will be covering these here.
+
+The script that performs the assessment steps is called "qc.sh".
 
 ### Assess using read mapping
 In ideal situations, we want the reads that produced our assembly to map back to that assembly to the highest degree possible. A lower mapping percentages might indicate issues such as low sequencing yeild and not enough coverage, contamination, poor quality, or sequencing library quality issues. It might also indicate that our transcriptome is a lot more complex and that the assembler struggles to piece things together. It might also indicate that we have partially spliced genes so perhaps our extraction protocol needs to be investigated.
@@ -262,8 +275,6 @@ Another more suitable statistic to calculate is the Ex90N50 and the Ex90 Gene Co
 
 _An alternative to the Contig Nx statistic that could be considered more appropriate for transcriptome assembly data is the ExN50 statistic. Here, the N50 statistic is computed as above but limited to the top most highly expressed genes that represent x% of the total normalized expression data. The gene expression is take as the sum of the transcript isoform expression and the gene length is computed as the expression-weighted mean of isoform lengths._
 
-We will be generating this statistic later on as it requires us to align the samples back to our assembly and calculate expression values.
-
 
 ### Assessing the assembly using BUSCO
 
@@ -345,6 +356,8 @@ The command above can be explained as follows,
 The output will be generated in a folder called "QUAST".
 
 ## Annotating the assembly using Trinotate
+The script that performs the annotation steps is called "annotate.sh".
+
 So now that we have checked the quality of our assembly and we are happy to proceed, the next logical step is to annotate the assembly. Broadly speaking, there are 2 ways that you can go about it.
 1. Ab initio gene finding, which is what BUSCO and QUAST used in the previous steps to predict genes based on the sequence of our assembly (such as AUGUSTS, GeneMark, Glimmer etc).
 2. Alignment and homology based searching, which is what Trinotate uses to annotate the genes.
@@ -358,8 +371,6 @@ So what does Trinotate do?
 At its core, Trinotate provides the means for functional annotation of transcriptomes, particularly de novo transcriptomes. It does so by comparing against known homology databases such as PFAM and UniProt, GeneOntolgy, and EggNogg. Similar to Trinity, it also provides many helper scripts that allow for easy integration with Trinity and downstream expression quantification. 
 
 Please note that as of March 2024, Trinotate is no longer under active development.
-
-
 
 Let's start by loading the packages,
 ```
@@ -477,7 +488,7 @@ Trinotate --db myTrinotate.sqlite --LOAD_signalp signalp.out
 
 At the end of this annotation process, it is useful to produce a tab-delimited file that includes all of the results of our analysis. This is achieved through the "Trinotate report" command.
 
-**HOWEVER**, we have found out (and this might only be relevant to our own setup and installation), that the report generation in the latest version of Trinotate (the one that we have been using so far) does not work, and it just produces and empty report!
+**HOWEVER**, we have found out (and this might only be relevant to our own setup and installation) that the report generation in the latest version of Trinotate (the one that we have been using so far) does not work, and it just produces and empty report!
 
 The work-around that we have found, is to generate the report using a previous version of Trinotate, but to do that, we have to unload our current environment and load the previous version.
 
