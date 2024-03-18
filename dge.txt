@@ -1,0 +1,6 @@
+fructose    fructose_rep1
+fructose    fructose_rep2
+glucose glucose_rep1
+glucose glucose_rep2
+pyruvate    pyruvate_rep1
+pyruvate    pyruvate_rep2

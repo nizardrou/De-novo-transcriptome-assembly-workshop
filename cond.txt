@@ -1,0 +1,11 @@
+fructose    fructose_rep1   fru_1_1.fastq   fru_1_2.fastq
+fructose    fructose_rep2   fru_2_1.fastq   fru_2_2.fastq
+glucose glucose_rep1    glu_1_1.fastq   glu_1_2.fastq
+glucose glucose_rep2    glu_2_1.fastq   glu_2_2.fastq
+pyruvate    pyruvate_rep1   pyr_1_1.fastq   pyr_1_2.fastq
+pyruvate    pyruvate_rep2   pyr_2_1.fastq   pyr_2_2.fastq
+
+
+
+
+

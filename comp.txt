@@ -1,0 +1,3 @@
+fructose    glucose
+fructose    pyruvate
+glucose pyruvate
